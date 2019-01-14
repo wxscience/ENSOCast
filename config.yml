@@ -1,0 +1,26 @@
+---
+# full path to save forecast images, be sure to include trailing /
+image_path: 'output/'
+
+# images will have this name appended to them
+image_name: 'ENSOCast'
+
+# specify predictors. only nino34 and/or trades_wpac right now
+predictors: ['nino34', 'trades_wpac']
+
+# model configuration
+model_config:
+    start_date: '1979-1-1'
+    end_date: '2018-12-1'
+    train_len: 240
+    gpu: False
+    fcst_size: 12
+    window_length: 3
+    num_back_plot: 12
+    epochs: 300
+    batch_size: 128
+    initial_nodes: 20
+    hidden_nodes: 20
+    activation_function: 'tanh'
+    real_time_indicator: False # set this to True to automatically use the first day of the current month as end date.
+...
