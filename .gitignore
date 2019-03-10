@@ -1,0 +1,9 @@
+*.txt
+wpac*
+epac*
+zwnd*
+detrend*
+*sst*
+*pycache*
+*#
+output/*
