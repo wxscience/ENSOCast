@@ -179,5 +179,5 @@ for i in range(6):
 
 plt.subplots_adjust(hspace=.8)
 plt.suptitle('ENSOCast: SST 3.4 Anom (' + chr(176) + 'C) 6-Month Forecasts', size=5, weight='bold')
-plt.savefig(image_path + image_name + 'ENSOCast.png', orientation='portrait', bbox_inches='tight')
+plt.savefig(image_path + image_name + '.png', orientation='portrait', bbox_inches='tight')
 plt.close()
