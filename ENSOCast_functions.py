@@ -3,6 +3,7 @@ from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
 import subprocess
 from dateutil.relativedelta import relativedelta
+from scipy import signal
 import datetime as dt
 import os
 import yaml
@@ -21,6 +22,11 @@ def load_settings(filename):
 
 def get_predictors(predictors_list, start_date, end_date):
     date_list = [start_date + relativedelta(months=i) for i in range(month_diff(start_date, end_date))]
+
+    # SSTs are updated on the 7th of each month so safest to wait until the 8th
+    if (date_list[-1].month == dt.datetime.now().month-1) and (dt.datetime.now().day < 8):
+        del date_list[-1]
+
     x = np.zeros((len(date_list), len(predictors_list)))
 
     for predictor in predictors_list:
@@ -28,19 +34,20 @@ def get_predictors(predictors_list, start_date, end_date):
             query = 'rm', 'sstoi.indices'
             subprocess.run(query)
 
-            query = 'curl', '-O', 'http://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/detrend.nino34.ascii.txt'
+            query = 'curl', '-O', 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/detrend.nino34.ascii.txt'
             subprocess.run(query)
             print('SST File Downloaded')
 
             # nino34 starts in 1950, so we need to determine first row to keep based on that
             first_entry = month_diff(dt.date(1950, 1, 1), start_date)
-            x[:, predictors_list.index(predictor)] = np.genfromtxt('detrend.nino34.ascii.txt', skip_header=1)[first_entry:, 4]
+            x[:, predictors_list.index(predictor)] = \
+                signal.detrend(np.genfromtxt('detrend.nino34.ascii.txt', skip_header=1)[first_entry:, 4])
 
-        if predictor == 'trades_wpac':
+        elif predictor == 'trades_wpac':
             query = 'rm', 'wpac850'
             subprocess.run(query)
 
-            query = 'curl', '-O', 'http://www.cpc.ncep.noaa.gov/data/indices/wpac850'
+            query = 'curl', '-O', 'https://www.cpc.ncep.noaa.gov/data/indices/wpac850'
             subprocess.run(query)
             print('Trade Winds File Downloaded')
 
@@ -48,7 +55,39 @@ def get_predictors(predictors_list, start_date, end_date):
             first_entry = month_diff(dt.date(1979, 1, 1), start_date)
             wpac_data = np.genfromtxt('wpac850', skip_header=50, max_rows=41,
                                       delimiter=(4, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6))[:, 1:]
+
+            # need to detrend these indices or there will be a sharp upward trend
             x[:, predictors_list.index(predictor)] = np.reshape(wpac_data, (wpac_data.shape[0] * 12))[first_entry:x.shape[0]]
+        elif predictor == 'trades_epac':
+            query = 'rm', 'epac850'
+            subprocess.run(query)
+
+            query = 'curl', '-O', 'https://www.cpc.ncep.noaa.gov/data/indices/epac850'
+            subprocess.run(query)
+            print('Trade Winds File Downloaded')
+
+            # trade winds begin in 1979
+            first_entry = month_diff(dt.date(1979, 1, 1), start_date)
+            epac_data = np.genfromtxt('epac850', skip_header=50, max_rows=41,
+                                      delimiter=(4, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6))[:, 1:]
+
+            # need to detrend these indices or there will be a sharp upward trend
+            x[:, predictors_list.index(predictor)] = np.reshape(epac_data, (epac_data.shape[0] * 12))[first_entry:x.shape[0]]
+        elif predictor == 'u200':
+            query = 'rm', 'zwnd200'
+            subprocess.run(query)
+
+            query = 'curl', '-O', 'https://www.cpc.ncep.noaa.gov/data/indices/zwnd200'
+            subprocess.run(query)
+            print('Trade Winds File Downloaded')
+
+            # trade winds begin in 1979
+            first_entry = month_diff(dt.date(1979, 1, 1), start_date)
+            u200_data = np.genfromtxt('zwnd200', skip_header=50, max_rows=41,
+                                      delimiter=(4, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6))[:, 1:]
+
+            # need to detrend these indices or there will be a sharp upward trend
+            x[:, predictors_list.index(predictor)] = np.reshape(u200_data, (u200_data.shape[0] * 12))[first_entry:x.shape[0]]
     return x
 
 
@@ -56,7 +95,7 @@ def get_predictand(start_date, end_date):
     query = 'rm', 'sstoi.indices'
     subprocess.run(query)
 
-    query = 'curl', '-O', 'http://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/detrend.nino34.ascii.txt'
+    query = 'curl', '-O', 'https://www.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/detrend.nino34.ascii.txt'
     subprocess.run(query)
     print('SST File Downloaded')
 

@@ -34,6 +34,10 @@ y = ef.get_predictand(start_date, end_date)  # y_hat is really just sst34 which 
 # Create date "list" for *DATE VALID* (not the same as date initialized)
 dates = [start_date + relativedelta(months=i) for i in range(ef.month_diff(start_date, end_date))]
 
+# SSTs are updated on the 7th of each month so safest to wait until the 8th
+if (dates[-1].month == dt.datetime.now().month-1) and (dt.datetime.now().day < 8):
+    del dates[-1]
+
 # Normalize data to be between -1 and 1. Hold on to data_obj so that we can transform back afterwards.
 x_obj = ef.DataScaler(x)
 x_scaled = x_obj.scaled
@@ -70,7 +74,7 @@ dates_y_test = ef.make_window(dates_test[window_length:], fcst_size)
 y_hat = np.zeros(y_test_windowed.shape)
 y_hat_realtime = np.zeros((len(x_realtime_windowed), fcst_size))  # always forecast 12 months in future
 
-# Keeping time is interesting, especially when testing CPU vs. GPU (CPU seems to win with small LSTMs, GPU with larger)
+# Keeping time is interesting, especially when testing CPU vs. GPU (CPU seems to win with small LSTMs; GPU with larger)
 t1 = t.time()
 
 for n_fcst in range(fcst_size):

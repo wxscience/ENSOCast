@@ -5,8 +5,8 @@ image_path: 'output/'
 # images will have this name appended to them
 image_name: 'ENSOCast'
 
-# specify predictors. only nino34 and/or trades_wpac right now
-predictors: ['nino34', 'trades_wpac']
+# specify predictors. only nino34, trades_wpac, and/or trades_epac right now
+predictors: ['nino34', 'trades_wpac', 'trades_epac', 'u200']
 
 # model configuration
 model_config:
@@ -20,7 +20,7 @@ model_config:
     epochs: 300
     batch_size: 128
     initial_nodes: 20
-    hidden_nodes: 20
+    hidden_nodes: 10
     activation_function: 'tanh'
-    real_time_indicator: False # set this to True to automatically use the first day of the current month as end date.
+    real_time_indicator: True # set this to True to automatically use the first day of the current month as end date.
 ...
