@@ -1,4 +1,6 @@
 # ENSOCast
+Warning: this is old code that is no longer mantained. I have completely rewritten these scripts for my day job and no longer update this repo.
+
 This is the code for the ENSOCast component of my website. 
 You can edit the config.yml file to adjust it to your specs.
 
